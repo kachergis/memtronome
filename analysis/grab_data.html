@@ -1,0 +1,10 @@
+<script>
+  function gotData(data) {
+    console.log(data);
+  }
+</script>
+
+<script src="https://memtronome.firebaseio.com/.json?callback=gotData"></script>
+
+<!-- or curl "https://memtronome.firebaseio.com/.json?print=pretty&auth=CREDENTIAL" -->
+<!-- curl "https://memtronome.firebaseio.com/.json?print=pretty" >> memory-vs-xsl1-export.json -->
