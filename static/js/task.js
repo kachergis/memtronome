@@ -96,13 +96,14 @@ var Experiment = function() {
 	var stim_per_ISI = num_words_studied/4;
 	var ISI = []
 	for(i=0; i<ISIlevels.length; i++) {
-		ISI.join( Array(stim_per_ISI+1).join(ISIlevels[i]) );
+		var ISIchunk = Array(stim_per_ISI+1).concat(ISIlevels[i]);
+		ISI.concat( ISIchunk );
 	}
 	console.log(ISI);
 	var wordon, // time word is presented
 	    listening = false;
 
-	var pairs_per_trial = 0;
+	var ISItype;
 	var shuffle_trials = false;
 	if(mycondition==="0") {
 		ISItype = 'blocked';
@@ -112,7 +113,7 @@ var Experiment = function() {
 		condition_name = "shuffledISI";
 		ISI = _.shuffle(ISI);
 	}
-	console.log("mycondition: "+mycondition+" condition_name: "+condition_name + " pairs_per_trial: "+pairs_per_trial);
+	console.log("mycondition: "+mycondition+" condition_name: "+condition_name);
 
 	var VERBAL_STIM = ["gasser", "coro", "plib", "bosa", "habble", "pumbi", "kaki", "regli", "permi",
 		"gaso", "toma", "setar", "temi", "menick", "gosten", "fema", "gheck", "lanty", "ragol", "gelom",
