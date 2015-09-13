@@ -11,9 +11,10 @@ var mycondition = condition;  // these two variables are passed by the psiturk s
 var mycounterbalance = counterbalance;  // they tell you which condition you have been assigned to
 
 var condition_name = "";
-var num_words_studied = 48;
-var list_repetitions = 1; // tried 4 in pilot
-var time_per_stimulus = 2500; //3000;
+var ISI_LEVELS = [500,750,1000,1500]; // use each ISI for num_words_studied/4 items
+var num_words_studied = 28;
+var list_repetitions = 1;
+var time_per_stimulus = 2500;
 var total_time = num_words_studied*list_repetitions*(time_per_stimulus+500)/1000;
 console.log("study period duration: "+total_time); // now +500 ms
 // 2.5s per item + 500ms ISI per item should take 216 (3.6 min - 3:36) for 18 items
@@ -92,14 +93,14 @@ var instructioncheck = function() {
 
 var Experiment = function() {
 	// make list of ISIs to use
-	var ISIlevels = [500,750,1000,1500];
+	var ISIlevels = _.shuffle(ISI_LEVELS);
 	var stim_per_ISI = num_words_studied/4;
-	var ISI = []
+	var ISI = [];
 	for(i=0; i<ISIlevels.length; i++) {
-		var ISIchunk = Array(stim_per_ISI+1).concat(ISIlevels[i]);
-		ISI.concat( ISIchunk );
+		for(j=0; j<stim_per_ISI; j++) {
+			ISI.push(ISIlevels[i]);
+		}
 	}
-	console.log(ISI);
 	var wordon, // time word is presented
 	    listening = false;
 
@@ -111,8 +112,9 @@ var Experiment = function() {
 	} else if(mycondition==="1") {
 		ISItype = 'shuffled';
 		condition_name = "shuffledISI";
-		ISI = _.shuffle(ISI);
+		_.shuffle(ISI); // is this enough?
 	}
+	console.log(ISI);
 	console.log("mycondition: "+mycondition+" condition_name: "+condition_name);
 
 	var VERBAL_STIM = ["gasser", "coro", "plib", "bosa", "habble", "pumbi", "kaki", "regli", "permi",
@@ -145,6 +147,8 @@ var Experiment = function() {
 		for(i = 0; i<stimuli.length; i++) {
 			stimuli[i].index.push(study_index);
 			trials.push(stimuli[i]);
+			// see if stim.ISI is defined...should be
+			console.log(stimuli[i]);
 			study_index += 1;
 		}
 	}
@@ -157,24 +161,23 @@ var Experiment = function() {
 		}
 		else {
 			var stim = trials.shift();
-			var time = stim.ISI;
+			//var time = stim.ISI;
 			wordon = new Date().getTime();
 
-			show_stim( [stim], time, wordon );
+			show_stim( [stim], time_per_stimulus + stim.ISI, wordon );
 		}
 	};
 
 	var finish = function() {
 	    // add a novel word/object pair for testing?
-	    stimuli.push({"word":words[words.length-1], "obj":objs[objs.length-1], "studied":0})
-	    stimuli = _.shuffle(stimuli)
+	    stimuli = _.shuffle(stimuli);
 	    psiTurk.doInstructions(
     		testInstructions, // a list of pages you want to display in sequence
     		function() { currentview = new Test(stimuli); } // what you want to do when you are done with instructions
     	);
 	};
 
-	var record_study_trial = function(stim, time, wordon, key) {
+	var record_study_trial = function(stim, wordon, key) {
 		for(var i = 0; i < stim.length; i++) {
 			var dat = {'uniqueId':uniqueId, 'condition':condition_name, 'phase':"STUDY", 'ISI':stim[i].ISI, 'index':stim[i].index,
 				'word':stim[i].word, 'obj':stim[i].obj, 'duration':time_per_stimulus, 'timestamp':wordon, 'keycode':key};
@@ -189,7 +192,7 @@ var Experiment = function() {
 		d3.select("body").on("keydown", function() {
 			// 32 is space but let's record everything
 			//if(d3.event.keyCode === 32) {	}
-			record_study_trial(stim, time, wordon, d3.event.keyCode);
+			record_study_trial(stim, wordon, d3.event.keyCode);
 			recorded_flag = true;
 		});
 
@@ -225,11 +228,11 @@ var Experiment = function() {
 
 		setTimeout(function() {
 			if(!recorded_flag) { // record once if no keys were pressed
-				record_study_trial(stim, time, wordon, -1);
+				record_study_trial(stim, wordon, -1);
 			}
 			remove_stim();
-			setTimeout(function(){ next(); }, ISI); // 500ms ISI
-		}, time); // time or time+ISI; ?
+			setTimeout(function(){ next(); }, stim[0].ISI);
+		}, time_per_stimulus); // time or time+ISI; ?
 	};
 
 	var remove_stim = function() {

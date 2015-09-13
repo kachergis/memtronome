@@ -1,5 +1,5 @@
 [HIT Configuration]
-title = Associative Learning 1
+title = Memory and Timing
 description = Learn words in an alien language.
 amt_keywords = Psychology, Learning
 lifetime = 24
