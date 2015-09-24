@@ -11,11 +11,11 @@ var mycondition = condition;  // these two variables are passed by the psiturk s
 var mycounterbalance = counterbalance;  // they tell you which condition you have been assigned to
 
 var condition_name = "";
-var ISI_LEVELS = [500,750,1100,1800]; // use each ISI for num_items_studied/4 items
+var ISI_LEVELS = [500,800,1100,1800]; // use each ISI for num_items_studied/4 items
 var num_items_studied = 40;
 var list_repetitions = 1;
 var time_per_stimulus = 750;
-var total_time = num_items_studied*list_repetitions*(time_per_stimulus+500)/1000;
+var total_time = num_items_studied*list_repetitions*(time_per_stimulus+1000)/1000;
 console.log("study period duration: "+total_time); // now +500 ms
 // 2.5s per item + 500ms ISI per item should take 216 (3.6 min - 3:36) for 18 items
 
