@@ -11,11 +11,11 @@ var mycondition = condition;  // these two variables are passed by the psiturk s
 var mycounterbalance = counterbalance;  // they tell you which condition you have been assigned to
 
 var condition_name = "";
-var ISI_LEVELS = [500,750,1000,1500]; // use each ISI for num_words_studied/4 items
-var num_words_studied = 28;
+var ISI_LEVELS = [500,750,1100,1800]; // use each ISI for num_items_studied/4 items
+var num_items_studied = 40;
 var list_repetitions = 1;
-var time_per_stimulus = 2500;
-var total_time = num_words_studied*list_repetitions*(time_per_stimulus+500)/1000;
+var time_per_stimulus = 750;
+var total_time = num_items_studied*list_repetitions*(time_per_stimulus+500)/1000;
 console.log("study period duration: "+total_time); // now +500 ms
 // 2.5s per item + 500ms ISI per item should take 216 (3.6 min - 3:36) for 18 items
 
@@ -94,7 +94,7 @@ var instructioncheck = function() {
 var Experiment = function() {
 	// make list of ISIs to use
 	var ISIlevels = _.shuffle(ISI_LEVELS);
-	var stim_per_ISI = num_words_studied/4;
+	var stim_per_ISI = num_items_studied/4;
 	var ISI = [];
 	for(i=0; i<ISIlevels.length; i++) {
 		for(j=0; j<stim_per_ISI; j++) {
@@ -112,9 +112,8 @@ var Experiment = function() {
 	} else if(mycondition==="1") {
 		ISItype = 'shuffled';
 		condition_name = "shuffledISI";
-		_.shuffle(ISI); // is this enough?
+		ISI = _.shuffle(ISI); // is this enough?
 	}
-	console.log(ISI);
 	console.log("mycondition: "+mycondition+" condition_name: "+condition_name);
 
 	var VERBAL_STIM = ["gasser", "coro", "plib", "bosa", "habble", "pumbi", "kaki", "regli", "permi",
@@ -125,35 +124,27 @@ var Experiment = function() {
 		"lurf", "blug", "poove", "spret", "hoft", "prew", "nicote", "sanny", "jeba", "embo", "fexo", "woby",
 		"dilla", "arly", "zear", "luli", "grum"]; // 72 words -- not matched to voiced stimuli
 
-	var images = [];
-	for (var i = 1; i <= 72; i++) {
-   		images.push(i);
-	}
+	var images = _.range(1,80);
+	images = _.shuffle(images);
+	objs = images.slice(0,num_items_studied); // to study
+	var foil_inds = images.slice(num_items_studied+1, num_items_studied*2 +1 );
+	console.log("num for study: "+objs.length+" num foils: "+foil_inds.length);
 
-	objs = _.shuffle(images);
-	words = _.shuffle(VERBAL_STIM);
-
+	//words = _.shuffle(VERBAL_STIM);
 	var stimuli = []; // take first N
-	for(i = 0; i<num_words_studied; i++) {
-		stimuli.push({"word":words[i], "obj":objs[i], "studied":list_repetitions, "ISI":ISI[i], "index":[]});
+	for(i = 0; i<num_items_studied; i++) {
+		stimuli.push({"obj":objs[i], "ISI":ISI[i], "index":i+1, "type":"old"}); // "word":words[i],
 	}
 
-	var trials = [];
-	var study_index = 1;
-	for(m = 0; m<list_repetitions; m++) {
-		// if(shuffle_trials) { // shuffle each batch of repetitions
-		// 	stimuli = _.shuffle(stimuli);
-		// }
-		for(i = 0; i<stimuli.length; i++) {
-			stimuli[i].index.push(study_index);
-			trials.push(stimuli[i]);
-			// see if stim.ISI is defined...should be
-			console.log(stimuli[i]);
-			study_index += 1;
-		}
+	var trials = stimuli.slice(); // study trials
+	console.log(trials);
+	// add foils for test
+	for( i = 0; i<num_items_studied; i++) {
+		stimuli.push({"obj":foil_inds[i], "ISI":"NA", "index":0, "type":"new"});
 	}
+	stimuli = _.shuffle(stimuli);
+	console.log(stimuli);
 
-	//console.log(trials);
 
 	var next = function() {
 		if (trials.length===0) {
@@ -170,17 +161,16 @@ var Experiment = function() {
 
 	var finish = function() {
 	    // add a novel word/object pair for testing?
-	    stimuli = _.shuffle(stimuli);
 	    psiTurk.doInstructions(
     		testInstructions, // a list of pages you want to display in sequence
-    		function() { currentview = new Test(stimuli); } // what you want to do when you are done with instructions
+    		function() { currentview = new OldNewTest(stimuli); } // what you want to do when you are done with instructions
     	);
 	};
 
 	var record_study_trial = function(stim, wordon, key) {
 		for(var i = 0; i < stim.length; i++) {
 			var dat = {'uniqueId':uniqueId, 'condition':condition_name, 'phase':"STUDY", 'ISI':stim[i].ISI, 'index':stim[i].index,
-				'word':stim[i].word, 'obj':stim[i].obj, 'duration':time_per_stimulus, 'timestamp':wordon, 'keycode':key};
+				'obj':stim[i].obj, 'duration':time_per_stimulus, 'timestamp':wordon, 'keycode':key};
 			//console.log(dat);
 			psiTurk.recordTrialData(dat);
 			dbstudy.push(dat);
@@ -199,7 +189,7 @@ var Experiment = function() {
 		//console.log(stim);
 		var svg = d3.select("#visual_stim")
 			.append("svg")
-			.attr("width",480)
+			.attr("width",250) // 480 if two stim
 			.attr("height",250);
 
 		svg.selectAll("image")
@@ -209,22 +199,22 @@ var Experiment = function() {
       		.attr("xlink:href", function(d,i) { return IMG_DIR+d.obj+".jpg"; })
       		.attr("x", function(d,i) { return i*220+60 })
       		.attr("y", 10)
-      		.attr("width",120)
-      		.attr("height",120)
+      		.attr("width",169)
+      		.attr("height",169)
       		.style("opacity",1);
 
-		svg.selectAll("text")
-			.data(stim)
-			.enter()
-			.append("text")
-			.attr("x", function(d,i) { return i*220+50; })
-			.attr("y",180)
-			.style("fill",'black')
-			.style("text-align","center")
-			.style("font-size","50px")
-			.style("font-weight","200")
-			.style("margin","20px")
-			.text(function(d,i) { return d.word; });
+		// svg.selectAll("text")
+		// 	.data(stim)
+		// 	.enter()
+		// 	.append("text")
+		// 	.attr("x", function(d,i) { return i*220+50; })
+		// 	.attr("y",180)
+		// 	.style("fill",'black')
+		// 	.style("text-align","center")
+		// 	.style("font-size","50px")
+		// 	.style("font-weight","200")
+		// 	.style("margin","20px")
+		// 	.text(function(d,i) { return d.word; });
 
 		setTimeout(function() {
 			if(!recorded_flag) { // record once if no keys were pressed
@@ -244,24 +234,24 @@ var Experiment = function() {
 		// 	.remove();
 	};
 
+
 	// Load the stage.html snippet into the body of the page
 	psiTurk.showPage('stage.html');
 	// Start the test
-	next();
+	setTimeout(next(), 2000); // wait a bit to let the trial array be built...
 };
 
 
-
-
-var Test = function(stimuli) {
+var OldNewTest = function(stimuli) {
 	// shuffle the words and present each one along with all of the objects
 	// prompt them: "Choose the best object for"  (later: try choosing top two or three? or choose until correct?)
 	stimuli = _.shuffle(stimuli); // shuffle...again
-	var all_objs = stimuli.slice(0);
-	all_objs = _.shuffle(all_objs); // and shuffle the object array
+	//var all_objs = stimuli.slice(0);
+	//all_objs = _.shuffle(all_objs); // and shuffle the object array
+	var test_index = 0;
 
 	var finish = function() {
-	    //$("body").unbind("keydown", response_handler); // Unbind keys
+	    $("body").unbind("keydown", response_handler); // Unbind keys
 	    currentview = new Questionnaire();
 	};
 
@@ -271,53 +261,39 @@ var Test = function(stimuli) {
 		}
 		else {
 			var stim = stimuli.shift(); // remove words as tested
-			show_test( stim, all_objs );
+			test_index++;
+			show_test( stim );
 		}
 	};
 
-	var show_test = function(stim, all_objs) {
+	var show_test = function( stim ) {
 		wordon = new Date().getTime();
-		//console.log(all_objs);
-		d3.select("#prompt").html('<h1>Click on the '+ stim.word +'</h1>');
+		var recorded_flag = false;
+		var correct = 0;
+		var response = -1;
 
-		var rectGrid = d3.layout.grid()
-    		.bands()
-    		.nodeSize([100, 100])
-    		.padding([20, 20]); // padding is absolute if nodeSize is used
-    		// .size([100,100])
+		var svg = d3.select("#visual_stim")
+			.append("svg")
+			.attr("width",250)
+			.attr("height",250);
 
-    	var objs = d3.select("#visual_stim").append("svg")
-			.attr({
-				width: 900,
-				height: 620
-			})
-			.attr("id", "objArray")
-			.append("g")
-			.attr("transform", "translate(30,0)");
+		d3.select("body").on("keydown", function() {
+			var valid_key = false;
+			var rt = new Date().getTime() - wordon;
+			// 32 is space but let's record everything
+			if(d3.event.keyCode === 81) {	// 'Q'
+				valid_key = true;
+				response = 'new';
+				if(stim.type==='new') correct = 1;
+			} else if(d3.event.keyCode === 80) { // 'P'
+				valid_key = true;
+				response = 'old';
+				if(stim.type==='old') correct = 1;
+			}
 
-		var rect = objs.selectAll(".rect")
-			.data(rectGrid(all_objs));
-
-		//console.log(rect);
-
-		rect.enter().append("image")
-			.attr("xlink:href", function(d) { return IMG_DIR+d.obj+".jpg"; })
-			.attr("class", "rect")
-			.attr("id", function(d) { return d.obj; })
-			.attr("width", rectGrid.nodeSize()[0])
-			.attr("height", rectGrid.nodeSize()[1])
-			.attr("transform", function(d) { return "translate(" + (d.x + 20)+ "," + d.y + ")"; })
-			.style("opacity", 1)
-			.on("mousedown", function(d,i) {
-				if(stim.obj===d.obj) {
-					var correct = 1;
-				} else {
-					var correct = 0;
-				}
-				var rt = new Date().getTime() - wordon;
-
-				var dat = {'condition':condition_name, 'phase':"TEST", 'word':stim.word, 'studied':stim.studied, 'correctAns':stim.obj,
-					'response':d.obj, 'correct':correct, 'rt':rt}; // 'studyIndices':stim.studyIndices -- somehow record study...
+			if(valid_key) {
+				var dat = {'condition':condition_name, 'phase':"TEST", 'testIndex':test_index, 'studyIndex':stim.index, 'ISI':stim.ISI,
+					'stimId':stim.obj, 'correctAns':stim.type, 'response':response, 'correct':correct, 'rt':rt};
 				//console.log(dat);
 				psiTurk.recordTrialData(dat);
 				dat.uniqueId = uniqueId;
@@ -325,11 +301,25 @@ var Test = function(stimuli) {
 				dbtest.push(dat);
 				remove_stim();
 				setTimeout(function(){ next(); }, 500); // always 500 ISI
-			});
+			} // wait for a valid keypress
+		});
+
+		//d3.select("#prompt").html('<h1>Click on the '+ stim.word +'</h1>');
+		d3.select("#prompt").html('<h1>Q = New,   P = Old</h1>');
+
+		svg.selectAll("image")
+			.data([stim])
+			.enter()
+			.append("image")
+		  		.attr("xlink:href", function(d,i) { return IMG_DIR+d.obj+".jpg"; })
+		  		.attr("x", function(d,i) { return i*220+60 })
+		  		.attr("y", 10)
+		  		.attr("width",169)
+		  		.attr("height",169)
+		  		.style("opacity",1);
+
 
 	};
-
-	//var record_test_trial = function() { }
 
 	var remove_stim = function() {
 		d3.select("svg").remove();
