@@ -22,7 +22,7 @@ console.log("study period duration: "+total_time); // now +500 ms
 var IMG_DIR = "static/images/objects/";
 var IMAGE_FILES = [];
 
-for (var i = 1; i <= 72; i++) {
+for (var i = 1; i <= 87; i++) {
 		IMAGE_FILES.push(IMG_DIR+i+".jpg");
 }
 
