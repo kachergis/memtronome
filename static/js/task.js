@@ -106,6 +106,14 @@ var Experiment = function() {
 
 	var ISItype;
 	var shuffle_trials = false;
+
+	// give test subjects an id/condition:
+	if(uniqueId==='') {
+		var conds = ["0","1"];
+		uniqueId = Math.floor((Math.random() * 1000000) + 1);
+		mycondition = conds[Math.floor(Math.random()*conds.length)];
+	}
+
 	if(mycondition==="0") {
 		ISItype = 'blocked';
 		condition_name = "blockedISI"; // maybe randomize if increasing or decreasing by block
