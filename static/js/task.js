@@ -11,8 +11,8 @@ var mycondition = condition;  // these two variables are passed by the psiturk s
 var mycounterbalance = counterbalance;  // they tell you which condition you have been assigned to
 
 var condition_name = "";
-var ISI_LEVELS = [500,800,1100,1800]; // use each ISI for num_items_studied/4 items
-var num_items_studied = 40;
+var ISI_LEVELS = [500,1000,1700]; // use each ISI for num_items_studied/4 items
+var num_items_studied = 60;
 var list_repetitions = 1;
 var time_per_stimulus = 750;
 var total_time = num_items_studied*list_repetitions*(time_per_stimulus+1000)/1000;
@@ -22,7 +22,7 @@ console.log("study period duration: "+total_time); // now +500 ms
 var IMG_DIR = "static/images/objects/";
 var IMAGE_FILES = [];
 
-for (var i = 1; i <= 87; i++) {
+for (var i = 1; i <= 123; i++) {
 		IMAGE_FILES.push(IMG_DIR+i+".jpg");
 }
 
@@ -94,7 +94,7 @@ var instructioncheck = function() {
 var Experiment = function() {
 	// make list of ISIs to use
 	var ISIlevels = _.shuffle(ISI_LEVELS);
-	var stim_per_ISI = num_items_studied/4;
+	var stim_per_ISI = num_items_studied/ISI_LEVELS.length;
 	var ISI = [];
 	for(i=0; i<ISIlevels.length; i++) {
 		for(j=0; j<stim_per_ISI; j++) {
@@ -132,7 +132,7 @@ var Experiment = function() {
 		"lurf", "blug", "poove", "spret", "hoft", "prew", "nicote", "sanny", "jeba", "embo", "fexo", "woby",
 		"dilla", "arly", "zear", "luli", "grum"]; // 72 words -- not matched to voiced stimuli
 
-	var images = _.range(1,87);
+	var images = _.range(1,IMAGE_FILES.length);
 	images = _.shuffle(images);
 	objs = images.slice(0,num_items_studied); // to study
 	var foil_inds = images.slice(num_items_studied+1, num_items_studied*2 +1 );
