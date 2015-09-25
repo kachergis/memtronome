@@ -132,7 +132,7 @@ var Experiment = function() {
 		"lurf", "blug", "poove", "spret", "hoft", "prew", "nicote", "sanny", "jeba", "embo", "fexo", "woby",
 		"dilla", "arly", "zear", "luli", "grum"]; // 72 words -- not matched to voiced stimuli
 
-	var images = _.range(1,80);
+	var images = _.range(1,87);
 	images = _.shuffle(images);
 	objs = images.slice(0,num_items_studied); // to study
 	var foil_inds = images.slice(num_items_studied+1, num_items_studied*2 +1 );
@@ -145,13 +145,16 @@ var Experiment = function() {
 	}
 
 	var trials = stimuli.slice(); // study trials
-	console.log(trials);
+	//console.log(trials);
 	// add foils for test
-	for( i = 0; i<num_items_studied; i++) {
+	for( i = 0; i<foil_inds.length; i++) {
+		if(typeof foil_inds[i] === "undefined") {
+			console.log("missing foil: " + i);
+		}
 		stimuli.push({"obj":foil_inds[i], "ISI":"NA", "index":0, "type":"new"});
 	}
 	stimuli = _.shuffle(stimuli);
-	console.log(stimuli);
+	//console.log(stimuli);
 
 
 	var next = function() {
@@ -168,6 +171,7 @@ var Experiment = function() {
 	};
 
 	var finish = function() {
+		d3.select("body").on("keydown", null);
 	    // add a novel word/object pair for testing?
 	    psiTurk.doInstructions(
     		testInstructions, // a list of pages you want to display in sequence
@@ -259,7 +263,7 @@ var OldNewTest = function(stimuli) {
 	var test_index = 0;
 
 	var finish = function() {
-	    $("body").unbind("keydown", response_handler); // Unbind keys
+	    d3.select("body").on("keydown", null);
 	    currentview = new Questionnaire();
 	};
 
@@ -279,6 +283,8 @@ var OldNewTest = function(stimuli) {
 		var recorded_flag = false;
 		var correct = 0;
 		var response = -1;
+
+		//console.log(stim);
 
 		var svg = d3.select("#visual_stim")
 			.append("svg")

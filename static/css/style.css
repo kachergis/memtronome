@@ -4,14 +4,14 @@ body {
     margin: 0px;
     background-color: white;
     color: black;
-    font-weight: 300; 
+    font-weight: 300;
     font-size: 13pt;
 }
 
 
 /* text styling */
 strong {
-  font-weight: 600;         
+  font-weight: 600;
 }
 
 .warm {
@@ -24,7 +24,7 @@ strong {
 }
 
 #visual_stim {
-  border: 1px solid #ccc;
+  border: 0px solid #fff;
   padding-top: 40px;
 }
 
