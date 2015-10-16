@@ -11,7 +11,7 @@ var mycondition = condition;  // these two variables are passed by the psiturk s
 var mycounterbalance = counterbalance;  // they tell you which condition you have been assigned to
 
 var condition_name = "";
-var ISI_LEVELS = [500,1000,1700]; // use each ISI for num_items_studied/4 items
+var ISI_LEVELS = [500,2000,4000]; // use each ISI for num_items_studied/4 items
 var num_items_studied = 60;
 var list_repetitions = 1;
 var time_per_stimulus = 750;
